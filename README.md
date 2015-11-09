@@ -37,6 +37,9 @@ A simple benchmark test to measure the performance of the following Node.js modu
     with binary buffers pson.encode: 1826ms
     with binary buffers pson.decode: 377ms
 
+    // Note: JSON encoding binary buffers is not relevant
+    // as binary data should be encoded manually in a nother format
+    // For completeness however, this has been left in
     with binary buffers JSON.stringify: 6045ms
     with binary buffers JSON.parse: 735ms
 
