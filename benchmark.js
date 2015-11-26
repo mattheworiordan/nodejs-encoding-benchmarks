@@ -2,7 +2,29 @@ var msgpack   = require('msgpack'),
     msgpackJs = require('msgpack-js'),
     msgpack5  = require('msgpack5')(),
     PSON      = require('pson'),
-    pson      = new PSON.StaticPair()
+    pson      = new PSON.StaticPair(),
+    avsc      = require('avsc')
+
+// Avro type declarations for avsc.
+var typeWithoutBytes = avsc.parse({
+  name: 'Record',
+  type: 'record',
+  fields: [
+    {name: 'abcdef', type: 'int'},
+    {name: 'qqq', type: 'int'},
+    {name: 'a19', type: {type: 'array', items: 'int'}},
+  ]
+})
+var typeWithBytes = avsc.parse({
+  name: 'Record',
+  type: 'record',
+  fields: [
+    {name: 'abcdef', type: 'int'},
+    {name: 'qqq', type: 'int'},
+    {name: 'a19', type: {type: 'array', items: 'int'}},
+    {name: 'buf', type: {name: 'Buf', type: 'fixed', size: 256}}
+  ]
+})
 
 function benchmark(name, data) {
   var testCount = 1e5,
@@ -41,6 +63,19 @@ function benchmark(name, data) {
     pson.decode(encoded)
   console.timeEnd(`${name} pson.decode`)
 
+  var type = data.buf ? typeWithBytes : typeWithoutBytes
+
+  console.time(`${name} avsc.toBuffer`)
+  for (var i = 0; i < testCount; i++)
+    type.toBuffer(data)
+  console.timeEnd(`${name} avsc.toBuffer`)
+
+  encoded = type.toBuffer(data)
+  console.time(`${name} avsc.fromBuffer`)
+  for (var i = 0; i < testCount; i++)
+    type.fromBuffer(encoded)
+  console.timeEnd(`${name} avsc.fromBuffer`)
+
   console.time(`${name} JSON.stringify`)
   for (var i = 0; i < testCount; i++)
     JSON.stringify(data)
@@ -64,8 +99,8 @@ function benchmark(name, data) {
   console.timeEnd(`${name} msgpack5.decode`)
 }
 
-var dataWithBinary = { 'abcdef' : 1, 'qqq' : 13, '19' : [1, 2, 3, 4], buf: require('crypto').randomBytes(256) },
-    dataPlain      = { 'abcdef' : 1, 'qqq' : 13, '19' : [1, 2, 3, 4] }
+var dataWithBinary = { 'abcdef' : 1, 'qqq' : 13, 'a19' : [1, 2, 3, 4], buf: require('crypto').randomBytes(256) },
+    dataPlain      = { 'abcdef' : 1, 'qqq' : 13, 'a19' : [1, 2, 3, 4] }
 
 benchmark('no binary buffers', dataPlain)
 benchmark('with binary buffers', dataWithBinary)

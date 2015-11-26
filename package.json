@@ -6,7 +6,8 @@
     "msgpack-js": "0.3.0",
     "msgpack": "1.0.2",
     "msgpack5": "3.2.0",
-    "pson": "2.0.0"
+    "pson": "2.0.0",
+    "avsc": "3.0.2"
   },
   "engines": {
     "iojs": "4.2.2"
